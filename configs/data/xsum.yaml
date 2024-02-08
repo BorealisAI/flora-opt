@@ -1,0 +1,21 @@
+max_source_length: 512
+max_target_length: 128
+predict_with_generate: true
+num_beams: 1
+dataset_name: xsum
+dataset_config_name: null
+source_prefix: "summarize: "
+source_suffix: "... TL;DR: "
+source_column: null
+target_column: null
+metrics: [rouge]
+val_max_target_length: null
+train_file: null
+validation_file: null
+max_train_samples: null
+max_eval_samples: null
+max_predict_samples: null
+overwrite_cache: false
+preprocessing_num_workers: null
+ignore_pad_token_for_loss: true
+length_penalty: 1.0

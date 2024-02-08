@@ -1,0 +1,22 @@
+max_source_length: 512
+max_target_length: 512
+predict_with_generate: true
+num_beams: 1
+dataset_name: iwslt2017
+dataset_config_name: iwslt2017-de-en
+source_prefix: "translate German to English: "
+source_suffix: "English: "
+source_column: translation.de
+target_column: translation.en
+metrics: [sacrebleu]
+val_max_target_length: null
+train_file: null
+validation_file: null
+max_train_samples: null
+max_eval_samples: null
+max_predict_samples: null
+overwrite_cache: false
+preprocessing_num_workers: null
+pad_to_max_length: false
+ignore_pad_token_for_loss: true
+length_penalty: 1.0

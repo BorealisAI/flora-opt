@@ -1,0 +1,15 @@
+name: flora
+learning_rate: 0.0001
+b1: 0.9
+b2: 0.8
+tau: 128
+seed: 0
+kappa: 1000
+
+min_dim_size_to_factor: 128
+clipping_threshold: 1.0
+multiply_by_parameter_scale: true
+weight_decay: null
+eps: 1.0e-30
+
+factorized_second_moment: true

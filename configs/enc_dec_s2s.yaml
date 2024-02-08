@@ -1,0 +1,62 @@
+defaults:
+  - optimizer: adamw
+  - data: xsum
+  - _self_
+
+scheduler:
+  name: constant
+  num_warmup_steps: 0
+lora:
+  rank: 0
+  rules:
+    - "Attention"
+    - "DenseReluDense"
+  alpha: null
+  tune_vectors: true
+  tune_others: false
+  disabled: true
+  dropout: 0.0
+grad_acc:
+  steps: 1
+  impl: "naive"
+  tau: null
+training:
+  lr_decay: false
+  weight_decay: 0.0
+  label_smoothing_factor: 0.0
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: null
+  output_dir: ./outputs/${now:%Y-%m-%d_%H-%M-%S}
+  overwrite_output_dir: true
+  do_train: true
+  do_eval: true
+  do_predict: true
+  max_grad_norm: 1.0
+  num_train_epochs: 1
+  max_train_steps: null
+  warmup_steps: 0
+  logging_steps: 1
+  save_steps: 1000000
+  eval_steps: 5000
+  seed: 42
+  push_to_hub: false
+  hub_model_id: null
+  hub_token: null
+  num_tp_devices: 1
+model:
+  model_name_or_path: t5-small
+  config_name: null
+  tokenizer_name: null
+  cache_dir: null
+  pretrained: true
+  use_fast_tokenizer: true
+  dtype: float32
+  use_auth_token: false
+  from_pt: true
+  trust_remote_code: false
+hydra:
+  output_subdir: outputs/${now:%Y-%m-%d_%H-%M-%S}
+  run:
+    dir: outputs/${now:%Y-%m-%d_%H-%M-%S}
+with_tracking: true
+resume_from_checkpoint: null

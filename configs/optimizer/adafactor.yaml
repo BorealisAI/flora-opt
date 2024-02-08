@@ -1,0 +1,14 @@
+name: adafactor
+learning_rate: 1.0e-3
+min_dim_size_to_factor: 128
+decay_rate: 0.8
+decay_offset: 0
+multiply_by_parameter_scale: true
+clipping_threshold: 1.0
+momentum: null
+dtype_momentum: float32
+weight_decay_rate: null
+eps: 1.0e-30
+factored: true
+weight_decay_mask: null
+sign: false

@@ -1,6 +1,6 @@
 # 💐 Flora: Low-Rank Adapters Are Secretly Gradient Compressors
 
-This is the official repository for the paper [Flora: Low-Rank Adapters Are Secretly Gradient Compressors](https://arxiv.org/abs/2402.03293). This repository contains the code for the experiments in the paper.
+This is the official repository for the paper [Flora: Low-Rank Adapters Are Secretly Gradient Compressors](https://arxiv.org/abs/2402.03293) in ICML 2024. This repository contains the code for the experiments in the paper.
 
 ## Installation
 
@@ -28,6 +28,32 @@ The library is designed to be compatible with huggingface libraries. You can use
 ```
 
 Everything else remains the same. You can find more examples in the `examples` folder.
+
+## How it works
+
+Normally, there are three components in deep learning training: the model parameters, the optimizer, and the activations. Take the Adam optimizer as an example, the overall procedure is as follows:
+
+| Procedure                                                | Memory                                                   |
+| -------------------------------------------------------- | -------------------------------------------------------- |
+| <img src="assets/figures/Adam-Steps.gif" width="100%" /> | <img src="assets/figures/Adam-Memory.gif" width="81%" /> |
+
+Since Adam needs to store the first- and second-order moments for each parameter, the memory may double the size of the model.
+
+In our work, instead of maintaining the optimizers' states, we propose to use low-rank random projections to compress the moments. The overall procedure is as follows:
+
+| Procedure                                                 | Memory                                                    |
+| --------------------------------------------------------- | --------------------------------------------------------- |
+| <img src="assets/figures/Flora-Steps.gif" width="100%" /> | <img src="assets/figures/Flora-Memory.gif" width="81%" /> |
+
+The low-rank random projections reduces the memory usage by a factor of `rank / d`, where `rank` is the rank of the low-rank random projections and `d` is the dimension of the model parameters. In addition, the low-rank random projections can be generated on-the-fly using the random seed, which further reduces the memory usage.
+
+Moreover, Flora is compatible with the existing memory-efficient training techniques. For example, Flora can be combined with the activation checkpointing (AC) and layer-by-layer update (LOMO) to further reduce the memory usage, as shown below:
+
+| Procedure                                                         | Memory                                                            |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------- |
+| <img src="assets/figures/Flora-AC-LOMO-Steps.gif" width="100%" /> | <img src="assets/figures/Flora-AC-LOMO-Memory.gif" width="81%" /> |
+
+In summary, Flora is a simple yet effective method to compress the optimizer's states, which can be easily integrated into existing training frameworks.
 
 ## Paper Replications (with JAX)
 
@@ -68,10 +94,11 @@ For JAX, the arguments are similar. The translation can be found in `flora_opt/o
 ### Citation
 
 ```bibtex
-@article{hao2024flora,
+@inproceedings{hao2024flora,
   title={Flora: Low-Rank Adapters Are Secretly Gradient Compressors},
   author={Hao, Yongchang and Cao, Yanshuai and Mou, Lili},
-  journal={arXiv preprint arXiv:2402.03293},
+  booktitle={Forty-first International Conference on Machine Learning},
+  url={https://arxiv.org/abs/2402.03293},
   year={2024}
 }
 ```

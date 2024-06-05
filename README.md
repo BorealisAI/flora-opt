@@ -2,6 +2,10 @@
 
 This is the official repository for the paper [Flora: Low-Rank Adapters Are Secretly Gradient Compressors](https://arxiv.org/abs/2402.03293) in ICML 2024. This repository contains the code for the experiments in the paper.
 
+Flora dramatically decreases the GPU memory needed to pre-train and fine-tune models without compromising quality or causing significant slowdown. 
+
+![Flora Graphs](https://github.com/BorealisAI/flora-opt/assets/1929273/5bb88165-9bb6-4dbb-b346-5f172356d434)
+
 ## Installation
 
 You can install the library using pip:

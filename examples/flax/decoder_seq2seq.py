@@ -49,13 +49,16 @@ from transformers import (
 from transformers.utils import is_offline_mode
 
 import wandb
-from flora_opt.data.utils import data_loader
+from examples.flax.utils import data_loader
 from flora_opt.optimizers.optax import compressed_acc, get_optimizer
-from flora_opt.sharding import (
+from examples.flax.sharding import (
     get_batch_sharding,
     get_current_sharding,
     get_params_sharding,
 )
+
+os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
+
 
 logger = logging.getLogger(__name__)
 datasets.disable_caching()
@@ -764,15 +767,12 @@ def main(cfg):
     compiled_update = train_step.lower(state, dummy_batch).compile()
     tock = time.time()
     logger.info(f"Compilation took {tock - tick} seconds")
-    flops = compiled_update.cost_analysis()[-1]["flops"] / 1024**3
     state, _ = compiled_update(state, dummy_batch)
     try:
         memory = sum(jax.devices()[i].memory_stats()["peak_bytes_in_use"] for i in range(jax.device_count())) / 1024**3
     except Exception:
         memory = jnp.nan
-    logger.info(f"Flops: {flops} GF")
     logger.info(f"Peak memory usage: {memory} GiB")
-    wandb.run.summary["flops"] = flops
     wandb.run.summary["memory"] = memory
     wandb.run.summary["compilation"] = tock - tick
     # Replicate the train state on each device

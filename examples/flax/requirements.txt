@@ -1,0 +1,8 @@
+datasets
+evaluate
+rouge_score
+sacrebleu
+hydra-core
+transformers
+mlorax
+wandb

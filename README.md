@@ -17,7 +17,7 @@ pip install 'flora-opt[torch]' # for PyTorch
 or
 
 ```bash
-pip install 'flora-opt[optax]' # for JAX
+pip install 'flora-opt[jax]' # for JAX
 ```
 
 ## Usage
@@ -64,6 +64,7 @@ In summary, Flora is a simple yet effective method to compress the optimizer's s
 To replicate major experiments in the paper, run the following commands:
 
 ```bash
+pip install -r examples/flax/requirements.txt
 sh replicate.sh
 ```
 

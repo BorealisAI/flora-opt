@@ -19,8 +19,8 @@ setup(
     author="Yongchang Hao",
     packages=find_packages(include=["flora_opt"]),
     extras_require={
-        "torch": ["torch", "bitsandbytes", "transformers", "accelerate"],
-        "optax": ["optax", "flax", "jax", "transformers"],
+        "torch": ["torch", "bitsandbytes", "accelerate"],
+        "jax": ["optax", "flax", "jax"],
         "testing": ["pytest", "pytest-cov"],
     },
 )

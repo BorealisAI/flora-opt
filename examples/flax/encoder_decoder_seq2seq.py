@@ -37,9 +37,6 @@ from flax.training.common_utils import onehot
 from jax.lax import with_sharding_constraint
 from mlorax import LoRASpec, lora_init
 from omegaconf import OmegaConf
-from src.data.utils import data_loader
-from src.optimizers.optax import compressed_acc, get_optimizer
-from src.sharding import get_batch_sharding, get_current_sharding, get_params_sharding
 from tqdm import tqdm
 from transformers import (
     CONFIG_MAPPING,
@@ -47,12 +44,15 @@ from transformers import (
     AutoConfig,
     AutoTokenizer,
     FlaxAutoModelForSeq2SeqLM,
-    is_tensorboard_available,
     set_seed,
 )
 from transformers.utils import is_offline_mode
-
 import wandb
+
+from examples.flax.utils import data_loader
+from flora_opt.optimizers.optax import compressed_acc, get_optimizer
+from examples.flax.sharding import get_batch_sharding, get_current_sharding, get_params_sharding
+
 
 os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
 
@@ -128,21 +128,18 @@ def state_update(grads, state, weight_decay, **kwargs):
     )
 
 
-def write_train_metric(summary_writer, train_metrics, train_time, step):
+def write_train_metric(train_metrics, train_time, step):
     length = len(train_metrics)
     for i, metric in enumerate(train_metrics):
         for key, val in metric.items():
             tag = f"train/{key}"
-            summary_writer.scalar(tag, val, step - length + i + 1)
             wandb.log({tag: val}, step=step - length + i + 1)
-    summary_writer.scalar("train/time", train_time, step)
     wandb.log({"train/time": train_time}, step=step)
 
 
-def write_eval_metric(summary_writer, eval_metrics, step):
+def write_eval_metric(eval_metrics, step):
     for metric_name, value in eval_metrics.items():
         tag = f"eval/{metric_name}"
-        summary_writer.scalar(tag, value, step)
         wandb.log({tag: value}, step=step)
 
 
@@ -425,8 +422,8 @@ def main(cfg):
         return results
 
     # Enable tensorboard only on the master node
-    has_tensorboard = is_tensorboard_available()
-    if has_tensorboard and jax.process_index() == 0:
+    has_wandb = True
+    if has_wandb and jax.process_index() == 0:
         lr_str = f"-lr({cfg.optimizer.learning_rate})"
         tau_str = f"-tau({cfg.optimizer.tau})" if hasattr(cfg.optimizer, "tau") else ""
 
@@ -445,34 +442,17 @@ def main(cfg):
         weight_decay_str = f"-wd({cfg.training.weight_decay})" if cfg.training.weight_decay > 0 else ""
         name = f"{cfg.optimizer.name}{lr_str}{tau_str}{b1_str}{b2_str}{weight_decay_str}"
 
-        try:
-            wandb.init(
-                project="summarization",
-                config=dict(OmegaConf.to_container(cfg, resolve=True)),
-                dir=f"{cfg.training.output_dir}/",
-                name=name,
-            )
-            wandb.define_metric("eval/loss", summary="min")
-            wandb.define_metric("eval/rouge1", summary="max")
-            wandb.define_metric("train/loss", summary="min")
+        wandb.init(
+            project="summarization",
+            config=dict(OmegaConf.to_container(cfg, resolve=True)),
+            dir=f"{cfg.training.output_dir}/",
+            name=name,
+        )
+        wandb.define_metric("eval/loss", summary="min")
+        wandb.define_metric("eval/rouge1", summary="max")
+        wandb.define_metric("train/loss", summary="min")
 
-            name = name + os.environ.get("SLURM_JOB_ID", wandb.run.id)
-            from flax.metrics import tensorboard as tb
-
-            summary_writer = tb.SummaryWriter(log_dir=Path(cfg.training.output_dir) / name)
-            summary_writer.hparams(
-                dict(
-                    training=vars(cfg.training),
-                    data=vars(cfg.data),
-                    model=vars(cfg.model),
-                )
-            )
-
-        except ImportError as ie:
-            has_tensorboard = False
-            logger.warning(
-                f"Unable to display metrics through TensorBoard because some package are not installed: {ie}"
-            )
+        name = name + os.environ.get("SLURM_JOB_ID", wandb.run.id)
     else:
         logger.warning(
             "Unable to display metrics through TensorBoard because the package is not installed: "
@@ -726,12 +706,9 @@ def main(cfg):
     compiled_update = train_step.lower(state, dummy_batch).compile()
     tock = time.time()
     logger.info(f"Compilation took {tock - tick} seconds")
-    flops = compiled_update.cost_analysis()[-1]["flops"] / 1024**3
     state, _ = compiled_update(state, dummy_batch)
     memory = sum(jax.devices()[i].memory_stats()["peak_bytes_in_use"] for i in range(jax.device_count())) / 1024**3
-    logger.info(f"Flops: {flops} GF")
     logger.info(f"Peak memory usage: {memory} GiB")
-    wandb.run.summary["flops"] = flops
     wandb.run.summary["memory"] = memory
     wandb.run.summary["compilation"] = tock - tick
 
@@ -780,8 +757,8 @@ def main(cfg):
             cur_step = epoch * (len(train_dataset) // train_batch_size) + step
             if cur_step % cfg.training.logging_steps == 0 and cur_step > 0:
                 train_time = time.time() - train_start
-                if has_tensorboard and jax.process_index() == 0:
-                    write_train_metric(summary_writer, train_metrics, train_time, cur_step)
+                if has_wandb and jax.process_index() == 0:
+                    write_train_metric(train_metrics, train_time, cur_step)
                     train_metrics = []
 
             if (cur_step % cfg.training.eval_steps == 0 or cur_step + 1 == total_train_steps) and cur_step > 0:
@@ -832,8 +809,8 @@ def main(cfg):
                 epochs.desc = desc
 
                 # Save metrics
-                if has_tensorboard and jax.process_index() == 0:
-                    write_eval_metric(summary_writer, eval_metrics, cur_step)
+                if has_wandb and jax.process_index() == 0:
+                    write_eval_metric(eval_metrics, cur_step)
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="enc_dec_s2s")

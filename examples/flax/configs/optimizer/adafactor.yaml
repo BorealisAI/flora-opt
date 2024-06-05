@@ -11,4 +11,3 @@ weight_decay_rate: null
 eps: 1.0e-30
 factored: true
 weight_decay_mask: null
-sign: false

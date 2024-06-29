@@ -1,6 +1,6 @@
 # 💐 Flora: Low-Rank Adapters Are Secretly Gradient Compressors
 
-This is the official repository for the paper [Flora: Low-Rank Adapters Are Secretly Gradient Compressors](https://arxiv.org/abs/2402.03293) in ICML 2024. This repository contains the code for the experiments in the paper.
+This is the official repository for the paper [Flora: Low-Rank Adapters Are Secretly Gradient Compressors](https://arxiv.org/abs/2402.03293) in ICML 2024 ([research blog post on Flora](https://www.borealisai.com/research-blogs/pre-training-multi-billion-parameter-llms-on-a-single-gpu-with-flora/)).  This repository contains the code for the experiments in the paper.
 
 Flora dramatically decreases the GPU memory needed to pre-train and fine-tune models without compromising quality or causing significant slowdown. 
 

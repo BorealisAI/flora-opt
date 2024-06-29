@@ -4,17 +4,17 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+import logging
+from flora_opt.optimizers import optax_flora, Flora, FloraAccelerator
 
-try:
-    from flora_opt.optimizers.optax.flora import flora as optax_flora
-except ImportError:
-    optax_flora = None
 
-try:
-    from flora_opt.optimizers.torch.flora import Flora, FloraAccelerator
-except ImportError:
-    Flora = None
-    FloraAccelerator = None
+def set_logging_level(level: int):
+    logger = logging.getLogger(__name__.split(".")[0])
+    logger.setLevel(level)
+
+
+if Flora is None and optax_flora is None and FloraAccelerator is None:
+    raise ImportError("Both PyTorch and JAX dependencies are not installed. Please install one of them.")
 
 
 __all__ = {

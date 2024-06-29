@@ -13,11 +13,11 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="flora-opt",
-    version="0.0.1",
+    version="0.0.3",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Yongchang Hao",
-    packages=find_packages(include=["flora_opt"]),
+    packages=find_packages(include=["flora_opt", "flora_opt.*"]),
     extras_require={
         "torch": ["torch", "bitsandbytes", "accelerate"],
         "jax": ["optax", "flax", "jax"],
